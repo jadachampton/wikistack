@@ -19,7 +19,11 @@ router.post('/', function(req, res, next) {
   // make sure we only redirect *after* our save is complete!
   // note: `.save` returns a promise or it can take a callback.
   page.save()
-      .then(page => res.json(page))
+      // .then(page => res.json(page))
+      .then(function(savedPage){
+          res.redirect(savedPage.route); // route virtual FTW
+        })
+      .catch(next);
 
 });
 
@@ -30,8 +34,8 @@ router.get('/:urlTitle', function (req, res, next) {
       urlTitle: req.params.urlTitle
     }
   })
-  .then(function(foundPage){
-    res.render('wikipage', { page: foundPage } );
+  .then(function(page){
+    res.render('wikipage', { page } );
   })
   .catch(next);
 });
