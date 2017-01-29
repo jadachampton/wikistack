@@ -7,12 +7,28 @@
 
 var express = require('express');
 var router = express.Router();
+var models = require('../models');
+var Page = models.Page;
+var User = models.User;
 module.exports = router;
 
 //attaching some middleware to our router
 //retrieve all wiki pages
 // GET /wiki
 router.get('/', function(req, res, next) {
+  //we don't add a "where" because we just want every page. We provide an empty object here
+  //use Page model
+  Page.findAll({})
+  	//once we get all of the pages, we'll handle it this way, when our promise resolves we'll 
+	//handle our pages this way
+	//error handling middleware
+  	.then(function(pages) {
+		  res.render('index', {
+			  //these don't have to match up
+			  pages: pages
+		  });
+	  })
+	  .catch(next);
 });
 
 //submit a new page to the database
@@ -21,6 +37,18 @@ router.post('/', function(req, res, next) {
   //creates a new page for us using the req.body
   //by default req.body is undefined and is populated 
   //when we use body parsing middleware using the body parser
+  //build and save all in one
+  var author = User.build({
+	  name: req.body.authorName,
+	  email: req.body.authorEmail
+  });
+
+  author.save()
+	.then(function(savedAuthor) {
+		console.log(savedAuthor);
+	})
+	.catch(next);
+	
   var newPage = Page.build(req.body);
   //this is asynchronous, and returns a promise 
   //golden rule: anytime anything in sequelize interacts 
@@ -28,17 +56,17 @@ router.post('/', function(req, res, next) {
   //if this goes wrong I want to catch the error that is being thrown at me
   //before this instance gets validated, we want to take the title attached to that instance
   //and set a URL title on that instance based on that title
-  newPage.save()
-    .then(function(savedPage) {
-      console.log("Page was saved successfully!")
-      //when a plage is successful we want to res.redirect to /wiki/
-      //redirect to our list of pages
-      res.redirect(savedPage.route);
-    })
-    .catch(function(err) {
-      //when you call next with an error, it sends our error down the pipeline to our nearest error handling middleware
-      next(err);
-    });
+//   newPage.save()
+//     .then(function(savedPage) {
+//       console.log("Page was saved successfully!")
+//       //when a page is successful we want to res.redirect to /wiki/
+//       //redirect to our list of pages
+//       res.redirect(savedPage.route);
+//     })
+//     .catch(function(err) {
+//       //when you call next with an error, it sends our error down the pipeline to our nearest error handling middleware
+//       next(err);
+//     });
 });
 // GET /wiki/add
 router.get('/add', function(req, res) {
@@ -72,9 +100,6 @@ router.get('/:urlTitle', function(req, res, next) {
 	});
 });
 
-var models = require('../models');
-var Page = models.Page;
-var User = models.User;
 
 
 

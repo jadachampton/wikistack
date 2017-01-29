@@ -53,7 +53,7 @@ app.use(bodyParser.json()); // would be for AJAX requests
 //setup static routing incase we want to get: a frontend library, or something from our node_modules folder, or stylesheets
 //makes anything in the nodemodules folder able to be accessed by the url
 //not a good idea when it comes to web security "these are the libraries in the code base of libraries that my server is using"
-app.use(express.static(__dirname + '/node_modules'))
+app.use(express.static(__dirname + '/node_modules'));
 app.use(express.static(__dirname + '/public'));
 //================================================================================================
 
@@ -63,6 +63,7 @@ app.use(express.static(__dirname + '/public'));
 //plug wikiRouter into our main pipeline
 //anything that starts with /wiki in this URL we are going to take that request and pipe it into the subrouter
 //the subrouter is any way that it's configured is it's without the /wiki
+//catches any request with /wiki
 app.use('/wiki', wikiRouter);
 
 //this is telling our express application to go render our index.html
@@ -80,14 +81,15 @@ app.use(function(err, req, res, next) {
 //sync Page and User model and once those are good to go, let's start our sever
 //Any time we are interacting with our db itself it's trying to sync this user model
 //returns a promise
-//if it deosn't exist it will create a user table
+//if it doesn't exist it will create a user table
 //if it does exist then make sure that it matches the columns that were given in the schema in this model
-User.sync()
+//getting rid of pages that exist and then recreating them
+User.sync({force: true})
 //when that goes well, our .then success function will be called
 	.then(function() {
     //now that user synced let's go ahead and page sync for our page model
     //we are returning it because we are in a .then chain and we want our next .then to work 
-    	return Page.sync();
+    	return Page.sync({ force: true});
 	})
   //this .then will wait until the previous .then has completed
   	.then(function() {

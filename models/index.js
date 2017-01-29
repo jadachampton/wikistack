@@ -27,7 +27,7 @@ var Page = db.define('page', {
   //Sequelize.TEXT is similar to Sequlize.STRING, but with no size constraint
   content: {
     type: Sequelize.TEXT,
-    allowNull: false
+    allowNull: true
   },
   //Sequelize.ENUM ==> enumerated values, this satus field can only be one of these two values 'open' or 'closed
   status: {
@@ -62,8 +62,23 @@ var Page = db.define('page', {
 });
 
 var User = db.define('user', {
-
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
+  email: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true,
+    validate: {
+      isEmail: true
+    }
+  }
 });
+//a foreign key will be added to page, and that foreign key will be authorID
+//updates schema by setting up relationship
+//our page instances now have methods given to us in order to establish a relationship in our app
+Page.belongsTo(User, {as: 'author'});
 
 //make models acceptable to the rest of program
 //nodes export module system
